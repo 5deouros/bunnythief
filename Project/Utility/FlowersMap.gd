@@ -11,10 +11,3 @@ func _ready():
 		for plant in plants:
 			var grid_pos = map_to_world(plant, false)
 			plants_grid[String(Vector3(grid_pos.x, grid_pos.y, 0))] = id
-	
-	print(plants_grid)
-	
-	pass
-
-func _process(delta):
-	pass

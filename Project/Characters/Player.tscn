@@ -20,6 +20,7 @@ motion/sync_to_physics = false
 script = ExtResource( 1 )
 start_speed = 1.0
 female = false
+offset = 0
 
 [node name="PlayerCollisionShape" type="CollisionShape2D" parent="."]
 shape = SubResource( 1 )

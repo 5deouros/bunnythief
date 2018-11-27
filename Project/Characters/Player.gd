@@ -12,8 +12,14 @@ export var female = bool() # Bool to check player's gender
 var movement_axis = Vector2(0, 0) # Axis of direction in which player is moving
 var animation_step # Number of animation action to be played
 
+# Flower map variables
+var flowers_map # TileMap with flower cells
+export var offset = int() # Offset of moving TileMap
+var flower_idx # index of the flower tile player is moving to
+
 func _ready():
 	speed = start_speed
+	flowers_map = get_tree().get_nodes_in_group('flowers')[0]
 	#manage_animation() # First calls management of animation to be sure that player's animation will start with the correct gender sprite
 	pass
 
@@ -27,6 +33,18 @@ func walk():
 		# Checks if player's position is not the first point of the Array with the path to be followed
 		if position != walk_target_array.front():
 			var target_pos = walk_target_array.front() # Makes first point of movement path Array be target of walking direction
+			if flowers_map.plants_grid.has(String(Vector3(target_pos.x - offset, target_pos.y - offset, 0))):
+				if flower_idx != flowers_map.plants_grid[String(Vector3(target_pos.x - offset, target_pos.y - offset, 0))]:
+					flower_idx = flowers_map.plants_grid[String(Vector3(target_pos.x - offset, target_pos.y - offset, 0))]
+					if flower_idx == 0:
+						print("going to a pink square")
+					elif flower_idx == 1:
+						print("going to a yellow square")
+					elif flower_idx == 2:
+						print("going to a blue square")
+			else:
+				if flower_idx != -1:
+					flower_idx = -1
 			if position == target_pos: # Checks if target position isn't already reached
 				move_enabled = false # Disables movement
 				movement_axis = Vector2(0, 0) # Updates movement axis to zero as player is not allowed to move
@@ -60,6 +78,7 @@ func walk():
 					else: movement_axis.y = 0; #manage_animation()
 		else: # Removes first point from path points' Array to allow moving to the next point
 			walk_target_array.remove(0)
+			
 			#manage_animation() # Calls an animation management to change to next moving point's direction
 			move_enabled = true # Re-enables movement
 			
