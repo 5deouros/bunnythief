@@ -11,3 +11,8 @@ func _ready():
 		for plant in plants:
 			var grid_pos = map_to_world(plant, false)
 			plants_grid[String(Vector3(grid_pos.x, grid_pos.y, 0))] = id
+
+func delete_tile(tile_pos_v3):
+	var pos = Vector2(tile_pos_v3.x, tile_pos_v3.y)
+	set_cell(world_to_map(pos).x, world_to_map(pos).y, -1)
+	pass
