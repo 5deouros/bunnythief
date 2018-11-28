@@ -83,6 +83,8 @@ func walk():
 							#manage_animation()
 						else: movement_axis.y = 0; #manage_animation()
 						
+					elif flowers_map.is_flower(position, offset) && flowers_map.is_flower(target_pos, offset):
+						pass
 		else: # Removes first point from path points' Array to allow moving to the next point
 			walk_target_array.remove(0)
 			

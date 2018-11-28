@@ -12,6 +12,7 @@ var id_points_array = [] # ID (on Astar) of all tiles in order of the path found
 var player # Moving body
 var flowers # Flowers' TileMap that will superimpose walkable TileMap
 
+var flowers_added = false # Variable to check if flowers' available tiles have already increased corresponding AStar algorithm cost
 
 func _ready():
 	# Array with used cells in tilemap on grid coordinate positions
@@ -28,7 +29,8 @@ func _ready():
 		connect_nodes(pos, idx) # Creates connection on AStar graph with all found neighbour cells
 		idx += 1 # Raises idx value to be added to next tile
 		
-	player = get_tree().get_nodes_in_group('player')[0] # Finds player instance by detecting nodes markend on group 'player'
+	player = get_tree().get_nodes_in_group('player')[0] # Finds player instance by detecting nodes marked on group 'player'
+	flowers = get_tree().get_nodes_in_group('flowers')[0] # Finds flowers'map instance by detecting nodes marked on group 'flowers'
 	player.position = map_to_world(world_to_map(player.position)) # Aligns player's position to grid by getting his global position's equivalent grid position
 	player.position = Vector2(player.position.x + offset, player.position.y + offset) # Brings player to a centralized grid position with cells' offset
 	
@@ -37,12 +39,13 @@ func _ready():
 
 func _process(delta):
 	update_from_to()
+	update_grid()
 	if Input.is_action_just_released("Click"): # When user clicks
 		find_walking_path()
 
 func connect_nodes(pos, point): # Method that finds a tile's neighbours on TileSet
 	var tile_size = 256 # Size of tiles on TileMap
-	var neighbours = {1: null, 2: null, 3: null, 4: null, 5: null, 6: null, 7: null, 8: null} # Dictionary to catch all 8 direction neighbours of current Tile
+	var neighbours = {1: null, 2: null, 3: null, 4: null} # Dictionary to catch all 4 direction neighbours of current Tile
 	
 	var tgt = map_to_world(pos,false) # Gets current tile's world position
 	
@@ -50,24 +53,12 @@ func connect_nodes(pos, point): # Method that finds a tile's neighbours on TileS
 	
 	if grid.has(String(Vector3(tgt.x, tgt.y - tile_size, 0))): # Checks if tile has a northern neighbour
 		neighbours[1] = grid[String(Vector3(tgt.x, tgt.y - tile_size, 0))] 
-	if grid.has(String(Vector3(tgt.x + tile_size, tgt.y - tile_size, 0))): # Checks if tile has a northeastern neighbour
-		neighbours[2] = grid[String(Vector3(tgt.x + tile_size, tgt.y - tile_size, 0))]
-		pass
 	if grid.has(String(Vector3(tgt.x + tile_size, tgt.y, 0))): # Checks if tile has an eastern neighbour
-		neighbours[3] = grid[String(Vector3(tgt.x + tile_size, tgt.y, 0))]
-	if grid.has(String(Vector3(tgt.x + tile_size, tgt.y + tile_size, 0))): # Checks if tile has a southeastern neighbour
-		neighbours[4] = grid[String(Vector3(tgt.x + tile_size, tgt.y + tile_size, 0))]
-		pass
+		neighbours[2] = grid[String(Vector3(tgt.x + tile_size, tgt.y, 0))]
 	if grid.has(String(Vector3(tgt.x, tgt.y + tile_size, 0))): # Checks if tile has a southern neighbour
-		neighbours[5] = grid[String(Vector3(tgt.x, tgt.y + tile_size, 0))]
-	if grid.has(String(Vector3(tgt.x - tile_size, tgt.y + tile_size, 0))): # Checks if tile has a southwestern neighbour
-		neighbours[6] = grid[String(Vector3(tgt.x - tile_size, tgt.y + tile_size, 0))]
-		pass
+		neighbours[3] = grid[String(Vector3(tgt.x, tgt.y + tile_size, 0))]
 	if grid.has(String(Vector3(tgt.x - tile_size, tgt.y, 0))): # Checks if tile has a western neighbour
-		neighbours[7] = grid[String(Vector3(tgt.x - tile_size, tgt.y, 0))]
-	if grid.has(String(Vector3(tgt.x - tile_size, tgt.y - tile_size, 0))): # Checks if tile has a northwestern neighbour
-		neighbours[8] = grid[String(Vector3(tgt.x - tile_size, tgt.y - tile_size, 0))]
-		pass
+		neighbours[4] = grid[String(Vector3(tgt.x - tile_size, tgt.y, 0))]
 	
 	var neighbour_values = neighbours.values() # Adds all values of neighbours' dictionary into an Array
 	
@@ -79,6 +70,24 @@ func connect_nodes(pos, point): # Method that finds a tile's neighbours on TileS
 func find_walking_path():
 	var from = Vector3(curpos.x, curpos.y, 0) # Sets player position to where AStar algorithm will start finding a path
 	var to = Vector3(curtgt.x, curtgt.y, 0) # Sets mouse position to where AStar algorithm will find a path to
+	
+	if flowers.plants_grid.has(String(from)) && flowers.plants_grid.has(String(to)):
+		var path = []
+		var neighbours = astar.get_point_connections(grid[String(from)])
+		var walkable_array = []
+		for neighbour in neighbours:
+			var pos = astar.get_point_position(neighbour)
+			if !flowers.plants_grid.has(String(pos)):
+				walkable_array.append(neighbour)
+		while walkable_array != []:
+			for walkable_cell in walkable_array:
+				var possible_path = astar.get_id_path(walkable_cell, int(grid[String(to)]))
+				if possible_path != null:
+					path = possible_path
+					walkable_array.clear()
+				else:
+					walkable_array.erase(walkable_cell)
+		print(path)
 	
 	if grid.has(String(from)) && grid.has(String(to)): # Checks if from and to are valid positions of AStar nodes by finding their location on grid dictionary
 		id_points_array = astar.get_id_path(int(grid[String(from)]), int(grid[String(to)])) # Finds path and returns it to path Array
@@ -108,3 +117,30 @@ func update_from_to():
 	if get_cell(tgt_pos.x, tgt_pos.y) != -1:
 		# Gets world position of player and sets it to player's current position
 		curpos = map_to_world(tgt_pos)
+
+func update_grid():
+	if !flowers_added: # Checks if flowers' available tiles have already increased corresponding AStar algorithm cost
+		if flowers.built: # Checks if flowers' grid has already been built
+			var moving_tiles = grid.keys() # Gets all positions ov moveable cells stored in grid Dictionary into an Array
+			for moving_tile in moving_tiles: # Deals with the position of each moveable cell
+				if flowers.plants_grid.has(moving_tile): # Checks if a moveable cell has a flower tile in it
+					astar.set_point_weight_scale(grid[String(moving_tile)], 4) # Changes the AStar node's cost to 2 on each flowered cell
+			flowers_added = true # Marks that flowers' available tiles have already increased corresponding AStar algorithm cost
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

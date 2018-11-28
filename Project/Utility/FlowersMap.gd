@@ -1,6 +1,7 @@
 extends TileMap
 
 var plants_grid = {} # Dictionary to store all plants' position data
+var built = false # Variable to tell if grid has already been built
 
 func _ready():
 	
@@ -11,6 +12,8 @@ func _ready():
 		for plant in plants: # Deals with each tile instance of given ID
 			var grid_pos = map_to_world(plant, false) # Converts grid position fo given tile into a world position
 			plants_grid[String(Vector3(grid_pos.x, grid_pos.y, 0))] = id # Adds data to grid dictionary, with position as Key and TileSet ID as Value
+	
+	built = true # Grid has been built
 	set_process(true) # Allows process to run
 
 func delete_tile(tile_pos_v3): # Method to 'delete' a flower tile
