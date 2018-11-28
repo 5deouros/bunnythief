@@ -33,13 +33,23 @@ func walk():
 		# Checks if player's position is not the first point of the Array with the path to be followed
 		if position != walk_target_array.front():
 			var target_pos = walk_target_array.front() # Makes first point of movement path Array be target of walking direction
-			if flowers_map.plants_grid.has(String(Vector3(target_pos.x - offset, target_pos.y - offset, 0))): # To check if target tile is a plant
-				var deadline = target_pos # Stores target plant tile to be the deadline of the path found and unable player to go further
-				if walk_target_array != [deadline]: # Avoids array to be updated many times with the same value
-					walk_target_array.clear() # Clears previous path array
-					walk_target_array.append(deadline) # Appends to array the target flower tile
-				find_flower_type() # Calls a method to figure out which plant tile is player moving to
-				
+			
+			# Here, will be checked if player is moving towards a planted tile
+			if flowers_map.plants_grid.has(String(Vector3(target_pos.x - offset, target_pos.y - offset, 0))):
+				# Checks if current flower tile's index isn't already the flower's index to avoid updating variable's value more than once
+				if flower_idx != flowers_map.plants_grid[String(Vector3(target_pos.x - offset, target_pos.y - offset, 0))]:
+					flower_idx = flowers_map.plants_grid[String(Vector3(target_pos.x - offset, target_pos.y - offset, 0))] # Updates flower index value
+					
+					# Here will be identified the kind of flower player is moving towards, according to flowers' TileSet order
+					if flower_idx == 0:
+						print("going to a pink square")
+					elif flower_idx == 1:
+						print("going to a yellow square")
+					elif flower_idx == 2:
+						print("going to a blue square")
+			else: # If player's not moving to a recignized flower, it means this part of flowers' grid is empty, so tile index is -1
+				if flower_idx != -1: # To avoid updating same value more than once
+					flower_idx = -1
 			if position == target_pos: # Checks if target position isn't already reached
 				move_enabled = false # Disables movement
 				movement_axis = Vector2(0, 0) # Updates movement axis to zero as player is not allowed to move
@@ -47,30 +57,32 @@ func walk():
 			if move_enabled: # If movement is still enabled (checks if player hasn't reached target yet)
 				if target_pos != null: # Checks if target position is a valid position
 					
-					# Here, is checked on which direction target position is relative to player's position and its values are updated to movement axis
-					# An animation management is called after each update of axis position
-					
-					# To check direction relative to X axis
-					if position.x < target_pos.x:
-						position.x += speed
-						movement_axis.x = 1
-						#manage_animation()
-					elif position.x > target_pos.x:
-						position.x -= speed
-						movement_axis.x = -1
-						#manage_animation()
-					else: movement_axis.x = 0; #manage_animation()
-					
-					# To check direction relative to Y axis
-					if position.y < target_pos.y:
-						position.y += speed
-						movement_axis.y = 1
-						#manage_animation()
-					elif position.y > target_pos.y:
-						position.y -= speed
-						movement_axis.y = -1
-						#manage_animation()
-					else: movement_axis.y = 0; #manage_animation()
+					if !flowers_map.is_flower(position, offset) || !flowers_map.is_flower(target_pos, offset):
+						# Here, is checked on which direction target position is relative to player's position and its values are updated to movement axis
+						# An animation management is called after each update of axis position
+						
+						# To check direction relative to X axis
+						if position.x < target_pos.x:
+							position.x += speed
+							movement_axis.x = 1
+							#manage_animation()
+						elif position.x > target_pos.x:
+							position.x -= speed
+							movement_axis.x = -1
+							#manage_animation()
+						else: movement_axis.x = 0; #manage_animation()
+						
+						# To check direction relative to Y axis
+						if position.y < target_pos.y:
+							position.y += speed
+							movement_axis.y = 1
+							#manage_animation()
+						elif position.y > target_pos.y:
+							position.y -= speed
+							movement_axis.y = -1
+							#manage_animation()
+						else: movement_axis.y = 0; #manage_animation()
+						
 		else: # Removes first point from path points' Array to allow moving to the next point
 			walk_target_array.remove(0)
 			
@@ -86,16 +98,3 @@ func walk():
 func manage_animation(): # Method to check what animation should be played
 	pass
 
-func find_flower_type(): # Method to figure out which plant tile is player moving to
-	if flower_idx != flowers_map.plants_grid[String(Vector3(target_pos.x - offset, target_pos.y - offset, 0))]:
-		flower_idx = flowers_map.plants_grid[String(Vector3(target_pos.x - offset, target_pos.y - offset, 0))]
-		if flower_idx == 0:
-			print("going to a pink square")
-		elif flower_idx == 1:
-			print("going to a yellow square")
-			flowers_map.delete_tile(Vector3(target_pos.x - offset, target_pos.y - offset, 0))
-		elif flower_idx == 2:
-			print("going to a blue square")
-		else:
-				if flower_idx != -1:
-					flower_idx = -1

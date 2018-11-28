@@ -10,6 +10,7 @@ var offset = 128 # Half the size of TileMap cells' size
 var id_points_array = [] # ID (on Astar) of all tiles in order of the path found from current place to clicked place
 
 var player # Moving body
+var flowers # Flowers' TileMap that will superimpose walkable TileMap
 
 
 func _ready():
