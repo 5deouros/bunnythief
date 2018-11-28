@@ -71,14 +71,14 @@ func find_walking_path():
 	var from = Vector3(curpos.x, curpos.y, 0) # Sets player position to where AStar algorithm will start finding a path
 	var to = Vector3(curtgt.x, curtgt.y, 0) # Sets mouse position to where AStar algorithm will find a path to
 	
-	if flowers.plants_grid.has(String(from)) && flowers.plants_grid.has(String(to)):
-		var path = []
-		var neighbours = astar.get_point_connections(grid[String(from)])
-		var walkable_array = []
-		for neighbour in neighbours:
-			var pos = astar.get_point_position(neighbour)
-			if !flowers.plants_grid.has(String(pos)):
-				walkable_array.append(neighbour)
+	if flowers.plants_grid.has(String(from)) && flowers.plants_grid.has(String(to)): # Checks if player is trying to move from a tile with flowers to another tile with flowers
+		var path = [] # The idx Array that will be returned if a possible path is found
+		var neighbours = astar.get_point_connections(grid[String(from)]) # idx Array of neighbours of current player position's corresponding cell
+		var walkable_array = [] # The idx Array that will contain walkable neighbours of current player position's corresponding cell
+		for neighbour in neighbours: # Deals with each neighbour found
+			var pos = astar.get_point_position(neighbour) # Gets global position of given AStar index
+			if !flowers.plants_grid.has(String(pos)): # Checks if there is no flower tile on neighbour's position
+				walkable_array.append(neighbour) # Adds neighbour without flower on walkable Array
 		while walkable_array != []:
 			for walkable_cell in walkable_array:
 				var possible_path = astar.get_id_path(walkable_cell, int(grid[String(to)]))
@@ -87,9 +87,14 @@ func find_walking_path():
 					walkable_array.clear()
 				else:
 					walkable_array.erase(walkable_cell)
-		print(path)
-	
-	if grid.has(String(from)) && grid.has(String(to)): # Checks if from and to are valid positions of AStar nodes by finding their location on grid dictionary
+		var new_array = []
+		for id_point in path:
+			if !new_array.has(Vector2(astar.get_point_position(id_point).x + offset, astar.get_point_position(id_point).y + offset)):
+				new_array.append(Vector2(astar.get_point_position(id_point).x + offset, astar.get_point_position(id_point).y + offset))
+		if player.walk_target_array != new_array:
+			player.walk_target_array = new_array
+		
+	elif grid.has(String(from)) && grid.has(String(to)): # Checks if from and to are valid positions of AStar nodes by finding their location on grid dictionary
 		id_points_array = astar.get_id_path(int(grid[String(from)]), int(grid[String(to)])) # Finds path and returns it to path Array
 		var new_array = [] # Creates an empty array to convert AStar graph nodes' ID to their corresponding tiles' global position
 		# Deals with each of the nodes found on AStar path
